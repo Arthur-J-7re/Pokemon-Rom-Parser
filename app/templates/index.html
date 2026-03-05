@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PokeRando Wiki</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#0d0d0d;--surf:#141414;--brd:#252525;--acc:#c8ff00;--acc2:#00d4ff;--text:#e0e0e0;--muted:#555;--danger:#ff4444;--tag:#1a1a1a}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:13px;min-height:100vh}
+    body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.025) 2px,rgba(0,0,0,.025) 4px);pointer-events:none;z-index:9999}
+    header{border-bottom:1px solid var(--brd);padding:14px 28px;display:flex;align-items:center;gap:14px;position:sticky;top:0;background:var(--bg);z-index:100}
+    header h1{font-family:'Press Start 2P',monospace;font-size:10px;color:var(--acc);letter-spacing:2px;line-height:1.6}
+    .dot{color:var(--acc2);margin:0 8px}
+    .hright{color:var(--muted);font-size:11px;margin-left:auto;display:flex;align-items:center;gap:10px}
+    .lang-badge{background:var(--tag);border:1px solid var(--brd);padding:2px 8px;font-size:9px;color:var(--acc2)}
+    .wrap{max-width:1300px;margin:0 auto;padding:24px 28px}
+    .upload{border:1px dashed var(--brd);padding:28px;text-align:center;margin-bottom:20px;transition:border-color .2s}
+    .upload.drag{border-color:var(--acc)}
+    .upload h2{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--muted);margin-bottom:10px;letter-spacing:2px}
+    .upload p{color:var(--muted);margin-bottom:14px;font-size:12px}
+    .btn{background:transparent;border:1px solid var(--acc);color:var(--acc);padding:8px 20px;font-family:'Share Tech Mono',monospace;font-size:12px;cursor:pointer;letter-spacing:1px;transition:all .15s}
+    .btn:hover{background:var(--acc);color:var(--bg)}
+    #fi{display:none}
+    #umsg{margin-top:8px;font-size:12px;min-height:16px}
+    #umsg.ok{color:var(--acc)} #umsg.err{color:var(--danger);white-space:pre-wrap;text-align:left}
+    .sbar{background:var(--surf);border:1px solid var(--brd);padding:8px 16px;margin-bottom:20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+    .lname{color:var(--acc)}
+    .pill{background:var(--tag);border:1px solid var(--brd);padding:2px 10px;font-size:11px}
+    .pill span{color:var(--acc2)}
+    .tabs{display:flex;border-bottom:1px solid var(--brd);margin-bottom:18px;flex-wrap:wrap}
+    .tab{padding:8px 16px;cursor:pointer;color:var(--muted);font-family:'Share Tech Mono',monospace;font-size:11px;border-bottom:2px solid transparent;transition:all .15s;background:none;border-top:none;border-left:none;border-right:none;letter-spacing:1px}
+    .tab:hover{color:var(--text)} .tab.active{color:var(--acc);border-bottom-color:var(--acc)}
+    .tcnt{color:var(--muted);font-size:9px;margin-left:4px}
+    .srow{margin-bottom:14px}
+    .srow input{width:100%;background:var(--surf);border:1px solid var(--brd);color:var(--text);padding:8px 12px;font-family:'Share Tech Mono',monospace;font-size:12px;outline:none;transition:border-color .15s}
+    .srow input:focus{border-color:var(--acc2)}
+    .srow input::placeholder{color:var(--muted)}
+    .panel{display:none} .panel.active{display:block}
+    .tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+    .tag{background:var(--tag);border:1px solid var(--brd);padding:2px 6px;font-size:10px}
+    .tag.egg{color:#ffaa00;border-color:#2a1a00}
+    .tag.poke{color:#ffdd00;border-color:#252000}
+    .tag.item2{color:#00ff99;border-color:#002a1a}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+    .card{background:var(--surf);border:1px solid var(--brd);padding:14px;transition:border-color .15s}
+    .card:hover{border-color:var(--acc2)}
+    .ctitle{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--acc);margin-bottom:8px;letter-spacing:1px}
+    .poke-list{display:flex;flex-direction:column;gap:2px}
+    .poke-row{display:flex;align-items:center;gap:12px;padding:6px 10px;border:1px solid var(--brd);background:var(--surf);cursor:pointer;transition:border-color .15s;user-select:none}
+    .poke-row:hover{border-color:var(--acc2);background:#1a1a1a}
+    .poke-row.active{border-color:var(--acc);background:#1a1f00}
+    .poke-num{color:var(--muted);font-size:10px;width:32px;flex-shrink:0}
+    .poke-sprite{width:40px;height:40px;image-rendering:pixelated;flex-shrink:0}
+    .poke-name{color:var(--acc);font-family:'Press Start 2P',monospace;font-size:7px;flex:1}
+    .poke-type{color:var(--muted);font-size:10px;flex-shrink:0}
+    .poke-detail{display:none;background:var(--surf);border:1px solid var(--acc);padding:20px;margin-bottom:16px;position:relative}
+    .poke-detail.open{display:block}
+    .pd-close{position:absolute;top:10px;right:12px;cursor:pointer;color:var(--muted);font-size:16px;background:none;border:none;font-family:'Share Tech Mono',monospace}
+    .pd-close:hover{color:var(--acc)}
+    .pd-header{display:flex;align-items:center;gap:16px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--brd)}
+    .pd-sprite{width:80px;height:80px;image-rendering:pixelated}
+    .pd-num{color:var(--muted);font-size:10px}
+    .pd-name{font-family:'Press Start 2P',monospace;font-size:11px;color:var(--acc);margin:4px 0}
+    .pd-type{color:var(--acc2);font-size:11px}
+    .pd-item{color:#00ff99;font-size:10px;margin-top:4px}
+    .pd-body{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .pd-section{margin-bottom:14px}
+    .pd-label{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--muted);letter-spacing:1px;margin-bottom:6px}
+    .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+    .stat-cell{background:var(--tag);border:1px solid var(--brd);text-align:center;padding:4px}
+    .stat-l{font-size:8px;color:var(--muted);display:block}
+    .stat-v{font-size:12px;color:var(--acc2)}
+    .evo-chain{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .evo-item{display:flex;flex-direction:column;align-items:center;gap:2px}
+    .evo-spr{width:48px;height:48px;image-rendering:pixelated}
+    .evo-name{font-size:9px;color:var(--acc)}
+    .evo-arrow{color:var(--muted);font-size:14px}
+    .evo-method{font-size:8px;color:var(--acc2)}
+    .tm-list{display:flex;flex-wrap:wrap;gap:4px}
+    .tm-link{color:var(--acc2);text-decoration:none;font-size:10px;background:var(--tag);border:1px solid var(--brd);padding:2px 6px}
+    .tm-link:hover{border-color:var(--acc2);color:var(--acc)}
+    .mvlist{display:flex;flex-direction:column;gap:3px}
+    .mvrow{display:flex;gap:8px;font-size:11px}
+    .mvlv{color:var(--muted);width:30px;flex-shrink:0}
+    .trainer-card{background:var(--surf);border:1px solid var(--brd);cursor:pointer;transition:border-color .15s}
+    .trainer-card:hover,.trainer-card.active{border-color:var(--acc)}
+    .trainer-header{display:flex;align-items:center;gap:10px;padding:10px 12px}
+    .trainer-spr{width:48px;height:48px;image-rendering:pixelated;flex-shrink:0}
+    .trainer-class{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--acc);letter-spacing:1px}
+    .trainer-id{color:var(--muted);font-size:10px;margin-top:3px}
+    .trainer-team{border-top:1px solid var(--brd);padding:12px;display:none}
+    .trainer-pokemon-grid{display:flex;flex-wrap:wrap;gap:8px}
+    .trainer-poke-cell{display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--tag);border:1px solid var(--brd);padding:6px 8px;min-width:70px}
+    .trainer-poke-spr{width:48px;height:48px;image-rendering:pixelated}
+    .trainer-poke-name{font-size:9px;color:var(--acc);text-align:center}
+    .trainer-poke-lv{font-size:9px;color:var(--muted)}
+    .trainer-poke-item{font-size:8px;color:#00ff99;text-align:center}
+    .dtable{width:100%;border-collapse:collapse;font-size:12px}
+    .dtable th{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--muted);text-align:left;padding:7px 10px;border-bottom:1px solid var(--brd);letter-spacing:1px}
+    .dtable td{padding:7px 10px;border-bottom:1px solid var(--brd)}
+    .dtable tr:hover td{background:var(--surf)}
+    .enc-type{margin-bottom:8px}
+    .enc-label{font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:3px}
+    .empty{text-align:center;padding:50px 0;color:var(--muted)}
+    .loading{color:var(--muted);padding:20px;text-align:center}
+    a.pplink{color:var(--acc2);text-decoration:none}
+    a.pplink:hover{text-decoration:underline}
+    .team-poke{display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--tag);border:1px solid var(--brd);padding:8px;min-width:80px;text-align:center;border-radius:2px}
+    .team-poke.pc-item{min-width:60px;padding:6px;font-size:10px}
+    .team-poke.dead{color:var(--danger);border-color:var(--danger)}
+    .team-sprite{width:60px;height:60px;image-rendering:pixelated}
+    .team-poke-name{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--acc);letter-spacing:0.5px}
+    .team-poke-level{color:var(--muted);font-size:9px}
+    .input-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .input-grid > *{grid-column:1/-1}
+    .input-grid.two-col > input{grid-column:span 1}
+    .select-field{background:var(--surf);border:1px solid var(--brd);color:var(--text);padding:8px;font-family:'Share Tech Mono',monospace;font-size:12px;outline:none;cursor:pointer}
+    .input-field{background:var(--surf);border:1px solid var(--brd);color:var(--text);padding:8px;font-family:'Share Tech Mono',monospace;font-size:12px;outline:none}
+    .input-field:focus{border-color:var(--acc2)}
+    .trainer-selector{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px}
+    .trainer-sel-card{background:var(--tag);border:1px solid var(--brd);padding:8px;cursor:pointer;text-align:center;transition:border-color 0.2s}
+    .trainer-sel-card:hover,.trainer-sel-card.selected{border-color:var(--acc2)}
+    .trainer-sel-card.selected{background:#1a1f00}
+    .trainer-sel-name{font-size:9px;color:var(--acc);font-weight:bold}
+    .trainer-sel-class{font-size:8px;color:var(--muted)}
+    .team-switch{background:var(--tag);border:1px solid var(--brd);padding:8px;cursor:pointer;margin:6px 0;text-align:center;transition:border-color 0.2s}
+    .team-switch:hover,.team-switch.selected{border-color:var(--acc2)}
+    .team-switch.selected{background:#1a1f00}
+    .journey-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+    .journey-card{background:var(--surf);border:1px solid var(--brd);padding:12px;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;transition:all 0.2s;cursor:pointer;min-height:160px}
+    .journey-card:hover{border-color:var(--acc2)}
+    .journey-card.capture{border-left:4px solid #ffaa00}
+    .journey-card.evolution{border-left:4px solid #ffdd00}
+    .journey-card.pokemon_death{border-left:4px solid var(--danger);opacity:0.8}
+    .journey-card.pokemon_death .journey-sprite{filter:grayscale(100%) brightness(0.7)}
+    .journey-card.team_change{border-left:4px solid #00ff99}
+    .journey-sprite{width:60px;height:60px;image-rendering:pixelated;margin:6px 0}
+    .journey-label{font-size:9px;color:var(--muted);margin-bottom:4px}
+    .journey-text{font-size:10px;color:var(--acc);font-weight:bold}
+    .journey-sub{font-size:8px;color:var(--acc2);margin-top:4px}
+    .journey-delete{position:absolute;top:4px;right:4px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:2px 4px}
+    .journey-delete:hover{color:var(--danger)}
+    .arena-milestone{background:var(--surf);border:2px solid var(--acc);padding:20px;margin-bottom:20px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+    .arena-milestone-title{grid-column:1/-1;font-family:'Press Start 2P',monospace;font-size:9px;color:var(--acc);letter-spacing:1px;text-align:center;margin-bottom:10px}
+    .arena-team{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+    .arena-team-poke{display:flex;flex-direction:column;align-items:center;gap:4px}
+    .arena-team-sprite{width:48px;height:48px;image-rendering:pixelated}
+    .arena-team-name{font-size:9px;color:var(--acc2)}
+    .arena-team-label{font-size:8px;color:var(--muted);margin-top:4px;font-weight:bold}
+    .arena-deaths{font-size:9px;color:var(--danger);margin-top:8px}
+  </style>
+</head>
+<body>
+<header>
+  <h1>POKE<br>RANDO</h1>
+  <span class="dot">///</span>
+  <div><div style="color:var(--muted);font-size:9px">UPR ZX LOG VIEWER</div><div style="font-size:12px">Randomizer Wiki</div></div>
+  <div class="hright">
+    {% if adventures %}
+    <select id="adventure-select" style="background:var(--surf);border:1px solid var(--brd);color:var(--text);padding:4px 8px;font-family:'Share Tech Mono',monospace;font-size:11px;outline:none;cursor:pointer" onchange="switchAdventure()">
+      {% for adv in adventures %}
+      <option value="{{ adv.id }}" {% if adv.id == active_adv_id %}selected{% endif %}>{{ adv.name }}</option>
+      {% endfor %}
+    </select>
+    {% endif %}
+    <span class="lang-badge">{{ lang|upper }}</span>
+  </div>
+</header>
+<div class="wrap">
+  <div class="upload" id="dz">
+    <h2>IMPORT LOG FILE</h2>
+    <p>Glisse ton fichier .log exporte par Universal Pokemon Randomizer ZX</p>
+    <button class="btn" onclick="document.getElementById('fi').click()">Choisir un fichier</button>
+    <input type="file" id="fi" accept=".log,.txt">
+    <div id="umsg">{% if has_data %}OK {{ log_name }}{% endif %}</div>
+  </div>
+  {% if has_data %}
+  <div class="sbar">
+    <span class="lname">// {{ log_name }}</span>
+    <div class="pill"><span>{{ stats.pokemon }}</span> Pokemon</div>
+    <div class="pill"><span>{{ stats.trainers }}</span> Dresseurs</div>
+    <div class="pill"><span>{{ stats.wild_sets }}</span> Zones</div>
+    <div class="pill"><span>{{ stats.tms }}</span> TMs</div>
+    <div class="pill"><span>{{ stats.shops }}</span> Shops</div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="sw('pokemon',this)">POKEMON<span class="tcnt" id="c-pokemon"></span></button>
+    <button class="tab" onclick="sw('trainers',this)">DRESSEURS<span class="tcnt" id="c-trainers"></span></button>
+    <button class="tab" onclick="sw('wild',this)">ZONES WILD<span class="tcnt" id="c-wild"></span></button>
+    <button class="tab" onclick="sw('tms',this)">TMs/CTs<span class="tcnt" id="c-tms"></span></button>
+    <button class="tab" onclick="sw('shops',this)">SHOPS<span class="tcnt" id="c-shops"></span></button>
+    <button class="tab" onclick="sw('journey',this)">CARNET DE VOYAGE<span class="tcnt" id="c-journey"></span></button>
+  </div>
+  <div class="panel active" id="panel-pokemon">
+    <div class="srow"><input type="text" id="s-pokemon" placeholder="Nom, type..." oninput="dbn(loadPokemon,250)"></div>
+    <div class="poke-detail" id="poke-detail"></div>
+    <div class="poke-list" id="g-pokemon"><div class="loading">Chargement...</div></div>
+  </div>
+  <div class="panel" id="panel-trainers">
+    <div class="srow"><input type="text" id="s-trainers" placeholder="Classe, Pokemon, objet..." oninput="dbn(loadTrainers,250)"></div>
+    <div style="display:flex;flex-direction:column;gap:4px" id="g-trainers"></div>
+  </div>
+  <div class="panel" id="panel-wild">
+    <div class="srow"><input type="text" id="s-wild" placeholder="Lieu ou Pokemon..." oninput="dbn(loadWild,250)"></div>
+    <div class="grid" id="g-wild"></div>
+  </div>
+  <div class="panel" id="panel-tms">
+    <div class="srow"><input type="text" id="s-tms" placeholder="CT01, capacite..." oninput="dbn(loadTms,250)"></div>
+    <div id="g-tms"></div>
+  </div>
+  <div class="panel" id="panel-shops">
+    <div class="srow"><input type="text" id="s-shops" placeholder="Lieu ou objet..." oninput="dbn(loadShops,250)"></div>
+    <div class="grid" id="g-shops"></div>
+  </div>
+  <div class="panel" id="panel-journey">
+    <div style="margin-bottom:20px;border-bottom:1px solid var(--brd);padding-bottom:16px">
+      <h3 style="font-family:'Press Start 2P',monospace;font-size:8px;color:var(--acc);margin-bottom:12px;letter-spacing:1px">ÉQUIPE ACTUELLE</h3>
+      <div id="team-display" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+    </div>
+    <div style="margin-bottom:20px;border-bottom:1px solid var(--brd);padding-bottom:16px">
+      <h3 style="font-family:'Press Start 2P',monospace;font-size:8px;color:var(--acc);margin-bottom:8px;letter-spacing:1px">PC</h3>
+      <div id="pc-display" style="display:flex;gap:4px;flex-wrap:wrap;font-size:10px"></div>
+      <h3 style="font-family:'Press Start 2P',monospace;font-size:8px;color:var(--danger);margin-top:12px;margin-bottom:8px;letter-spacing:1px">DÉCÉDÉS</h3>
+      <div id="dead-display" style="display:flex;gap:4px;flex-wrap:wrap;font-size:10px"></div>
+    </div>
+    <div style="margin-bottom:20px">
+      <h3 style="font-family:'Press Start 2P',monospace;font-size:8px;color:var(--acc);margin-bottom:10px;letter-spacing:1px">AJOUTER UN ÉVÉNEMENT</h3>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <select id="j-type" style="background:var(--surf);border:1px solid var(--brd);color:var(--text);padding:8px;font-family:'Share Tech Mono',monospace;font-size:12px;outline:none;cursor:pointer" onchange="updateFormType()">
+          <option value="">-- Sélectionner un type --</option>
+          <option value="pokemon_capture">Capture de Pokémon</option>
+          <option value="evolution">Évolution</option>
+          <option value="arena_battle">Combat d'arène</option>
+          <option value="team_change">Changement d'équipe</option>
+          <option value="pokemon_death">Décès (Nuzlock)</option>
+          <option value="other">Autre événement</option>
+        </select>
+        <div id="form-container"></div>
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--brd);padding-top:16px">
+      <h3 style="font-family:'Press Start 2P',monospace;font-size:8px;color:var(--acc);margin-bottom:10px;letter-spacing:1px">HISTORIQUE</h3>
+      <div id="g-journey" style="display:flex;flex-direction:column;gap:6px"></div>
+    </div>
+  </div>
+  {% else %}
+  <div class="empty">Aucune donnee - importe un log UPR ZX ci-dessus.</div>
+  {% endif %}
+</div>
+<script>
+var LANG = "{{ lang }}";
+var nameToNum = {};
+var nameToNumLC = {}; // index en lowercase pour lookup insensible à la casse
+
+function getPokeNum(name) {
+  return nameToNum[name] || nameToNumLC[name.toLowerCase()] || '';
+}
+var tmMoveMap = {};
+var allPokemon = [];
+var activeNum = null;
+
+(function(){
+  var dz=document.getElementById('dz');
+  var fi=document.getElementById('fi');
+  var umsg=document.getElementById('umsg');
+  if(!dz)return;
+  dz.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('drag');});
+  dz.addEventListener('dragleave',function(){dz.classList.remove('drag');});
+  dz.addEventListener('drop',function(e){
+    e.preventDefault();dz.classList.remove('drag');
+    if(e.dataTransfer.files[0])doUpload(e.dataTransfer.files[0]);
+  });
+  fi.addEventListener('change',function(){if(fi.files[0])doUpload(fi.files[0]);});
+  function doUpload(file){
+    umsg.textContent='Parsing...';umsg.className='';
+    var fd=new FormData();fd.append('file',file);
+    fetch('/upload',{method:'POST',body:fd})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if(d.ok){umsg.textContent='OK '+d.message;umsg.className='ok';setTimeout(function(){location.reload();},1500);}
+        else{umsg.textContent='ERREUR '+d.message;umsg.className='err';}
+      })
+      .catch(function(){umsg.textContent='Erreur reseau';umsg.className='err';});
+  }
+})();
+
+var loaders={pokemon:loadPokemon,trainers:loadTrainers,wild:loadWild,tms:loadTms,shops:loadShops,journey:function(){loadJourney();loadTeamState();}};
+function sw(name,el){
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+  el.classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+  if(loaders[name]){
+    var result=loaders[name]();
+    if(name==='journey' && !currentTrainersData.length){
+      fetch('/api/trainers').then(function(r){return r.json();}).then(function(data){currentTrainersData=data;});
+    }
+  }
+}
+var dbt;
+function dbn(fn,ms){clearTimeout(dbt);dbt=setTimeout(fn,ms);}
+
+function spriteUrl(num){
+  return 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+num+'.png';
+}
+function ppUrl(name){
+  var segs=name.trim().split(/\s+/).map(function(w){
+    return w.charAt(0).toUpperCase()+w.slice(1).toLowerCase();
+  });
+  return 'https://www.pokepedia.fr/'+segs.map(function(s){return encodeURIComponent(s);}).join('_');
+}
+function ppLink(name,label){
+  return '<a class="pplink" href="'+ppUrl(name)+'" target="_blank" rel="noopener">'+(label||name)+'</a>';
+}
+
+function ensureTmMap(){
+  if(Object.keys(tmMoveMap).length)return Promise.resolve();
+  return fetch('/api/tms').then(function(r){return r.json();}).then(function(data){
+    data.forEach(function(t){tmMoveMap[t.tm]=t.move;});
+  });
+}
+
+function loadPokemon(){
+  return ensureTmMap().then(function(){
+    var q=document.getElementById('s-pokemon');q=q?q.value:'';
+    return fetch('/api/pokemon?q='+encodeURIComponent(q)).then(function(r){return r.json();});
+  }).then(function(data){
+    allPokemon=data;
+    data.forEach(function(p){
+      nameToNum[p.name] = p.num;
+      nameToNumLC[p.name.toLowerCase()] = p.num;  // ← ajoute cette ligne
+    });
+    document.getElementById('c-pokemon').textContent=' ('+data.length+')';
+    var g=document.getElementById('g-pokemon');
+    if(!data.length){g.innerHTML='<div class="loading">Aucun resultat</div>';return;}
+    var html='';
+    data.forEach(function(p){
+      var n3=String(p.num).padStart(3,'0');
+      html+='<div class="poke-row" id="row-'+p.num+'" onclick="toggleDetail('+p.num+')">';
+      html+='<span class="poke-num">#'+n3+'</span>';
+      html+='<img class="poke-sprite" src="'+spriteUrl(p.num)+'" onerror="this.style.opacity=0.15">';
+      html+='<span class="poke-name">'+p.name+'</span>';
+      html+='<span class="poke-type">'+p.type+'</span>';
+      html+='</div>';
+    });
+    g.innerHTML=html;
+    if(activeNum&&data.find(function(p){return p.num===activeNum;}))openDetail(activeNum);
+    else closeDetail();
+  });
+}
+
+function toggleDetail(num){if(activeNum===num){closeDetail();return;}openDetail(num);}
+
+function closeDetail(){
+  activeNum=null;
+  var det=document.getElementById('poke-detail');
+  det.classList.remove('open');det.innerHTML='';
+  document.querySelectorAll('.poke-row').forEach(function(r){r.classList.remove('active');});
+}
+
+function openDetail(num){
+  activeNum=num;
+  var p=allPokemon.find(function(x){return x.num===num;});
+  if(!p)return;
+  document.querySelectorAll('.poke-row').forEach(function(r){r.classList.remove('active');});
+  var row=document.getElementById('row-'+num);
+  if(row){row.classList.add('active');row.scrollIntoView({block:'nearest'});}
+  var det=document.getElementById('poke-detail');
+  det.innerHTML='<div class="loading">Chargement...</div>';
+  det.classList.add('open');
+
+  fetch('/api/movesets?q='+encodeURIComponent(p.name))
+    .then(function(r){return r.json();})
+    .then(function(msData){
+      var ms=msData.find(function(m){return m.name===p.name;});
+      var levelMoves=ms?ms.level_moves:[];
+      var eggMoves=ms?ms.egg_moves:[];
+      renderDetail(p,levelMoves,eggMoves,det);
+    });
+}
+
+function renderDetail(p,levelMoves,eggMoves,det){
+  var ab1=p.ability1&&p.ability1!='-------'
+    ?('<a class="pplink" href="'+ppUrl(p.ability1)+'" target="_blank">'+p.ability1+'</a>')
+    :'<span style="color:var(--muted)">--</span>';
+  var ab2=p.ability2&&p.ability2!='-------'
+    ?(' / <a class="pplink" href="'+ppUrl(p.ability2)+'" target="_blank">'+p.ability2+'</a>')
+    :'';
+
+  var evoHtml;
+  if(p.evolutions&&p.evolutions.length){
+    evoHtml=buildEvoChain(p.num,p.name,p.evolutions);
+  }else if(p.evolves_to&&p.evolves_to.trim()!=p.name.trim()){
+    evoHtml=buildEvoChain(p.num,p.name,[{to:p.evolves_to,method:''}]);
+  }else{
+    evoHtml='<span style="color:var(--muted);font-size:10px">Aucune evolution</span>';
+  }
+
+  var tmHtml;
+  if(p.tms&&p.tms.length){
+    var tl='<div class="tm-list">';
+    p.tms.forEach(function(tm){
+      var mv=tmMoveMap[tm];
+      if(mv)tl+='<a class="tm-link" href="'+ppUrl(mv)+'" target="_blank">'+mv+'</a>';
+      else tl+='<span class="tag">'+tm+'</span>';
+    });
+    tl+='</div>';
+    tmHtml=tl;
+  }else{
+    tmHtml='<span style="color:var(--muted);font-size:10px">Aucune CT/CS</span>';
+  }
+
+  var wildHtml;
+  if(p.wild&&p.wild.length){
+    var wl='<div style="display:flex;flex-direction:column;gap:3px">';
+    p.wild.forEach(function(w){
+      wl+='<div style="font-size:10px"><span style="color:var(--acc)">'+w.location+'</span>';
+      wl+='<span style="color:var(--muted)"> '+w.type+' Lv'+w.level+'</span></div>';
+    });
+    wl+='</div>';
+    wildHtml=wl;
+  }else{
+    wildHtml='<span style="color:var(--muted);font-size:10px">Non capturable</span>';
+  }
+
+  var mvHtml='<div class="mvlist">';
+  levelMoves.forEach(function(m){
+    mvHtml+='<div class="mvrow"><span class="mvlv">Lv'+m.level+'</span>';
+    mvHtml+='<a class="pplink" style="font-size:11px" href="'+ppUrl(m.move)+'" target="_blank">'+m.move+'</a></div>';
+  });
+  mvHtml+='</div>';
+
+  var eggHtml='';
+  if(eggMoves.length){
+    eggHtml='<div class="pd-section"><div class="pd-label">EGG MOVES</div><div class="tags">';
+    eggMoves.forEach(function(m){eggHtml+='<span class="tag egg">'+ppLink(m,m)+'</span>';});
+    eggHtml+='</div></div>';
+  }
+
+  var statsHtml='';
+  [['HP',p.hp],['ATK',p.atk],['DEF',p.def],['SPA',p.spa],['SPD',p.spd],['SPE',p.spe]].forEach(function(pair){
+    statsHtml+='<div class="stat-cell"><span class="stat-l">'+pair[0]+'</span><span class="stat-v">'+pair[1]+'</span></div>';
+  });
+
+  var n3=String(p.num).padStart(3,'0');
+  det.innerHTML=
+    '<button class="pd-close" onclick="closeDetail()">x</button>'+
+    '<div class="pd-header">'+
+      '<img class="pd-sprite" src="'+spriteUrl(p.num)+'" onerror="this.style.opacity=0.15">'+
+      '<div>'+
+        '<div class="pd-num">#'+n3+'</div>'+
+        '<div class="pd-name">'+p.name+'</div>'+
+        '<div class="pd-type">'+p.type+'</div>'+
+        (p.item?'<div class="pd-item">'+p.item+'</div>':'')+
+      '</div>'+
+    '</div>'+
+    '<div class="pd-body">'+
+      '<div>'+
+        '<div class="pd-section"><div class="pd-label">STATS</div><div class="stat-grid">'+statsHtml+'</div></div>'+
+        '<div class="pd-section"><div class="pd-label">TALENTS</div><div>'+ab1+ab2+'</div></div>'+
+        '<div class="pd-section"><div class="pd-label">EVOLUTION</div>'+evoHtml+'</div>'+
+        '<div class="pd-section"><div class="pd-label">ZONES DE CAPTURE</div>'+wildHtml+'</div>'+
+      '</div>'+
+      '<div>'+
+        '<div class="pd-section"><div class="pd-label">CAPACITES PAR NIVEAU</div>'+mvHtml+'</div>'+
+        eggHtml+
+        '<div class="pd-section"><div class="pd-label">CT / CS</div>'+tmHtml+'</div>'+
+      '</div>'+
+    '</div>';
+}
+
+function buildEvoChain(fromNum,fromName,evos){
+  function item(num,name,method){
+    var spr=num?'<img class="evo-spr" src="'+spriteUrl(num)+'" onerror="this.style.opacity=0.15">':'';
+    var meth=method?'<span class="evo-method">'+method+'</span>':'';
+    return '<div class="evo-item">'+spr+'<span class="evo-name">'+name+'</span>'+meth+'</div>';
+  }
+  var html='<div class="evo-chain">'+item(fromNum,fromName,'');
+  evos.forEach(function(e){
+    var eNum=nameToNum[e.to]||'';
+    html+='<span class="evo-arrow">&#8594;</span>'+item(eNum,e.to,e.method);
+  });
+  return html+'</div>';
+}
+
+// Noms FR -> slug PokeAPI (Gen 1-7, arenes + ligue + boss)
+// Les slugs correspondent aux fichiers dans sprites/trainers/ du repo PokeAPI
+var TRAINER_SPRITES={
+  // ── GEN 1 · Kanto ────────────────────────────────────────────────────────
+  // Arenes
+  'CHAMPION PIERRE':'brock',
+  'CHAMPION ONDINE':'misty',
+  'CHAMPION MAJOR BOB':'lt-surge',
+  'CHAMPION ERIKA':'erika',
+  'CHAMPION KOGA':'koga',
+  'CHAMPION MORGANE':'sabrina',
+  'CHAMPION BLAISE':'blaine',
+  'CHAMPION GIOVANNI':'giovanni',
+  // Ligue Kanto
+  'CONSEIL 4 OLGA':'lorelei',
+  'CONSEIL 4 ALDO':'bruno',
+  'CONSEIL 4 AGATHA':'agatha',
+  'CONSEIL 4 PETER':'lance',
+  // Champion Kanto (Blue/Gary)
+  'CHAMPION GARY':'blue',
+  'CHAMPION BASTIEN':'blue',
+  // Boss
+  'BOSS GIOVANNI':'giovanni',
+
+  // ── GEN 2 · Johto ────────────────────────────────────────────────────────
+  // Arenes
+  'CHAMPION VIOLETTE':'falkner',
+  'CHAMPION ARACHNID':'bugsy',
+  'CHAMPION PARME':'whitney',
+  'CHAMPION MORTIMER':'morty',
+  'CHAMPION CHUCK':'chuck',
+  'CHAMPION JASMINE':'jasmine',
+  'CHAMPION PRISE':'pryce',
+  'CHAMPION CLAIRE':'clair',
+  // Ligue Johto
+  'CONSEIL 4 WILL':'will',
+  'CONSEIL 4 KOGA':'koga',
+  'CONSEIL 4 BRUNO':'bruno',
+  'CONSEIL 4 KAREN':'karen',
+  // Champion Johto
+  'CHAMPION CHEN':'lance',
+  'CHAMPION LANCE':'lance',
+
+  // ── GEN 3 · Hoenn ────────────────────────────────────────────────────────
+  // Arenes
+  'CHAMPION ROXANNE':'roxanne',
+  'CHAMPION ROXANE':'roxanne',
+  'CHAMPION BRICE':'brawly',
+  'CHAMPION VOLTERE':'wattson',
+  'CHAMPION ADRIANE':'flannery',
+  'CHAMPION NORMAN':'norman',
+  'CHAMPION ALIZEE':'winona',
+  'CHAMPION MARC':'tate-and-liza',
+  'CHAMPION TATIA':'tate-and-liza',
+  'CHAMPION LEVY':'tate-and-liza',
+  'CHAMPION LEVY&TATIA':'tate-and-liza',
+  'CHAMPION JUAN':'juan',
+  // Ligue Hoenn
+  'CONSEIL 4 DAMIEN':'sidney',
+  'CONSEIL 4 SPECTRA':'phoebe',
+  'CONSEIL 4 GLACIA':'glacia',
+  'CONSEIL 4 ARAGON':'drake',
+  // Champion Hoenn
+  'CHAMPION STEVEN':'steven',
+  'CHAMPION PIERRE':'steven',
+  'CHAMPION AUGUSTE':'steven',
+  'CHAMPION VIVIANE':'wallace',
+  'CHAMPION LOIC':'wallace',
+
+  // ── GEN 4 · Sinnoh ───────────────────────────────────────────────────────
+  // Arenes
+  'CHAMPION ALEX':'roark',
+  'CHAMPION MELANIE':'gardenia',
+  'CHAMPION MAEVA':'maylene',
+  'CHAMPION WAKE':'crasher-wake',
+  'CHAMPION FANTINA':'fantina',
+  'CHAMPION BYRON':'byron',
+  'CHAMPION CANDICE':'candice',
+  'CHAMPION VOLKNER':'volkner',
+  // Ligue Sinnoh
+  'CONSEIL 4 AARON':'aaron',
+  'CONSEIL 4 BERTHA':'bertha',
+  'CONSEIL 4 FLINT':'flint',
+  'CONSEIL 4 LUCIAN':'lucian',
+  // Champion Sinnoh
+  'CHAMPION CYNTHIA':'cynthia',
+  'CHAMPION CYNTHIA':'cynthia',
+
+  // ── GEN 5 · Unova ────────────────────────────────────────────────────────
+  // Arenes
+  'CHAMPION CHILI':'chili',
+  'CHAMPION CILAN':'cilan',
+  'CHAMPION CRESS':'cress',
+  'CHAMPION LENORA':'lenora',
+  'CHAMPION BURGH':'burgh',
+  'CHAMPION ELESA':'elesa',
+  'CHAMPION CLAY':'clay',
+  'CHAMPION SKYLA':'skyla',
+  'CHAMPION BRYCEN':'brycen',
+  'CHAMPION DRAYDEN':'drayden',
+  'CHAMPION IRIS':'iris',
+  'CHAMPION ROXIE':'roxie',
+  'CHAMPION MARLON':'marlon',
+  // Ligue Unova
+  'CONSEIL 4 SHAUNTAL':'shauntal',
+  'CONSEIL 4 MARSHAL':'marshal',
+  'CONSEIL 4 GRIMSLEY':'grimsley',
+  'CONSEIL 4 CAITLIN':'caitlin',
+  // Champion Unova
+  'CHAMPION ALDER':'alder',
+  'CHAMPION IRIS':'iris',
+  'CHAMPION N':'n',
+
+  // ── GEN 6 · Kalos ────────────────────────────────────────────────────────
+  // Arenes
+  'CHAMPION VIOLA':'viola',
+  'CHAMPION GRANT':'grant',
+  'CHAMPION KORRINA':'korrina',
+  'CHAMPION RAMOS':'ramos',
+  'CHAMPION CLEMONT':'clemont',
+  'CHAMPION VALERIE':'valerie',
+  'CHAMPION OLYMPIA':'olympia',
+  'CHAMPION WULFRIC':'wulfric',
+  // Ligue Kalos
+  'CONSEIL 4 MALVA':'malva',
+  'CONSEIL 4 SIEBOLD':'siebold',
+  'CONSEIL 4 WIKSTROM':'wikstrom',
+  'CONSEIL 4 DRASNA':'drasna',
+  // Champion Kalos
+  'CHAMPION DIANTHA':'diantha',
+
+  // ── GEN 7 · Alola ────────────────────────────────────────────────────────
+  // Kahunas
+  'CHAMPION HALA':'hala',
+  'CHAMPION OLIVIA':'olivia',
+  'CHAMPION NANU':'nanu',
+  'CHAMPION HAPU':'hapu',
+  // Captaines (pas de sprites dispo en tant que chefs)
+  // Ligue Alola
+  'CONSEIL 4 HALA':'hala',
+  'CONSEIL 4 MOLAYNE':'molayne',
+  'CONSEIL 4 OLIVIA':'olivia',
+  'CONSEIL 4 ACEROLA':'acerola',
+  'CONSEIL 4 KAHILI':'kahili',
+  // Champion Alola
+  'CHAMPION KUKUI':'kukui',
+  'CHAMPION HAUCOU':'hau',
+  'CHAMPION HAU':'hau'
+};
+var BASE_SPR='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/';
+
+var BASE_SPR='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/';
+function trainerSpriteUrl(cls){
+
+    // 1️⃣ Supprime les préfixes
+    var name = cls
+      .replace(/^CHAMPION\s+/i, '')
+      .replace(/^CONSEIL\s*4\s+/i, '')
+      .replace(/^BOSS\s+/i, '')
+      .trim()
+      .toUpperCase();
+
+    const FR_TO_EN = {
+
+    // ══════════════════════════════════════════════════════════════
+    // GEN 1 · KANTO
+    // ══════════════════════════════════════════════════════════════
+    "PIERRE":        "brock",
+    "ONDINE":        "misty",
+    "MAJOR BOB":     "ltsurge",
+    "ERIKA":         "erika",
+    "KOGA":          "koga",
+    "MORGANE":       "sabrina",
+    "AUGUSTE":       "blaine",        // Auguste = Blaine !
+    "GIOVANNI":      "giovanni",
+    // Conseil 4 Kanto
+    "OLGA":          "lorelei",
+    "ALDO":          "bruno",
+    "AGATHA":        "agatha",
+    "PETER":         "lance",
+    // Champion
+    "BLUE":          "blue",
+    "GARY":          "blue",
+
+    // ══════════════════════════════════════════════════════════════
+    // GEN 2 · JOHTO
+    // ══════════════════════════════════════════════════════════════
+    "ALBERT":        "falkner",
+    "HECTOR":        "bugsy",
+    "BLANCHE":       "whitney",
+    "MORTIMER":      "morty",
+    "CHUCK":         "chuck",
+    "JASMINE":       "jasmine",
+    "FREDO":         "pryce",         // Frédo → accent retiré par normalize()
+    "SANDRA":        "clair",
+    // Conseil 4 Johto
+    "MALIK":         "will",
+    "KAREN":         "karen",
+    // Champion
+    "LANCE":         "lance",
+
+    // ══════════════════════════════════════════════════════════════
+    // GEN 3 · HOENN
+    // ══════════════════════════════════════════════════════════════
+    "ROXANNE":       "roxanne",
+    "BASTIEN":       "brawly",
+    "VOLTERE":       "wattson",
+    "ADRIANE":       "flannery",
+    "NORMAN":        "norman",
+    "ALIZEE":        "winona",
+    "MARC":          "tate",
+    "TATIA":         "liza",
+    "LEVY":          "tate",
+    "LEVY&TATIA":    "tate",
+    "JUAN":          "juan",
+    // Conseil 4 Hoenn
+    "DAMIEN":        "sidney",
+    "SPECTRA":       "phoebe",
+    "GLACIA":        "glacia",
+    "ARAGON":        "drake",
+    // Champions
+    "PIERRE ROCHARD":"steven",        // Steven FR complet
+    "LOIC":          "wallace",
+    "VIVIANE":       "wallace",
+    // Teams
+    "MAX":           "archie",
+    "MAXIE":         "maxie",
+    "COURTNEY":      "courtney",
+    "SHELBY":        "shelly",
+    "TABITHA":       "tabitha",
+
+    // ══════════════════════════════════════════════════════════════
+    // GEN 4 · SINNOH
+    // Source : Pokébip DP (confirmé)
+    // ══════════════════════════════════════════════════════════════
+    "PIERRICK":      "roark",
+    "FLO":           "gardenia",
+    "MELINA":        "maylene",       // Mélina → accent retiré
+    "LOVIS":         "crasherwake",   // pas de tiret sur Showdown
+    "KIMERA":        "fantina",       // Kiméra → accent retiré
+    "CHARLES":       "byron",
+    "GLADYS":        "candice",
+    "TANGUY":        "volkner",
+    // Conseil 4 Sinnoh (mêmes noms FR/EN)
+    "AARON":         "aaron",
+    "BERTHA":        "bertha",
+    "FLINT":         "flint",
+    "LUCIAN":        "lucian",
+    "CYNTHIA":       "cynthia",
+
+    // ══════════════════════════════════════════════════════════════
+    // GEN 5 · UNOVA
+    // Source : Pokébip + Poképédia (confirmé)
+    // ══════════════════════════════════════════════════════════════
+    "ARMANDO":       "cilan",
+    "RACHID":        "chili",
+    "NOA":           "cress",
+    "ALOE":          "lenora",        // Aloé → accent retiré
+    "ARTIE":         "burgh",
+    "INEZIA":        "elesa",
+    "BARDANE":       "clay",
+    "CAROLINA":      "skyla",
+    "ZHU":           "brycen",
+    "IRIS":          "iris",
+    "WATSON":        "drayden",       // Watson = Drayden en NB FR
+    // NB2 arènes
+    "TCHEREN":       "cheren",
+    "STRYKNA":       "roxie",
+    "AMANA":         "marlon",
+    // Conseil 4 Unova
+    "SHANTAL":       "shauntal",
+    "GUY":           "grimsley",
+    "ANISSA":        "caitlin",
+    "THOMAS":        "marshal",
+    // Champions
+    "ALDER":         "alder",
+    "N":             "n",
+    "GHETIS":        "ghetsis",
+    "COLRESS":       "colress",
+
+    // ══════════════════════════════════════════════════════════════
+    // GEN 6 · KALOS
+    // Source : Pokemon-France, Pokébip, Pokémon Trash (tous confirmés)
+    // Arènes : Violette, Lino, Cornélia, Amaro, Lem, Valériane, Astera, Urup
+    // Conseil 4 : Malva, Narcisse, Thyméo, Dracéna
+    // Maître : Dianthéa
+    // ══════════════════════════════════════════════════════════════
+    // Arènes
+    "VIOLETTE":      "viola",         // Arène 1 · Insecte
+    "LINO":          "grant",         // Arène 2 · Roche
+    "CORNELIA":      "korrina",       // Arène 3 · Combat (Cornélia → accent retiré)
+    "AMARO":         "ramos",         // Arène 4 · Plante
+    "LEM":           "clemont",       // Arène 5 · Électrik
+    "VALERIANE":     "valerie",       // Arène 6 · Fée (Valériane → accents retirés)
+    "ASTERA":        "olympia",       // Arène 7 · Psy
+    "URUP":          "wulfric",       // Arène 8 · Glace
+    // Conseil 4 Kalos
+    "MALVA":         "malva",         // Feu    (même nom FR/EN)
+    "NARCISSE":      "siebold",       // Eau
+    "TYMEO":         "wikstrom",      // Acier  (Thyméo → accents retirés)
+    "DRACENA":       "drasna",        // Dragon (Dracéna → accent retiré)
+    // Champion
+    "DIANTHEA":      "diantha",       // Maître (Dianthéa → accent retiré)
+    // Boss
+    "LYSANDRE":      "lysandre",
+  };
+    var slug = FR_TO_EN[name] || name.toLowerCase();
+
+    // 3️⃣ Normalisation finale
+    slug = slug
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, "-");
+
+    return "https://play.pokemonshowdown.com/sprites/trainers/" + slug + ".png";
+
+  }
+
+function isImportant(cls){return /^(CHAMPION|CONSEIL\s*4|BOSS)/i.test(cls.trim());}
+
+function loadTrainers(){
+  var inp=document.getElementById('s-trainers');var q=inp?inp.value:'';
+  return fetch('/api/trainers?q='+encodeURIComponent(q))
+    .then(function(r){return r.json();})
+    .then(function(data){
+      document.getElementById('c-trainers').textContent=' ('+data.length+')';
+      var g=document.getElementById('g-trainers');
+      if(!data.length){g.innerHTML='<div class="loading">Aucun resultat</div>';return;}
+      var html='';
+      data.forEach(function(t){
+        var sprUrl=isImportant(t.class)?trainerSpriteUrl(t.class):null;
+        var teamHtml='';
+        t.pokemon.forEach(function(p){
+          var num=nameToNum[p.name]||'';
+          teamHtml+='<div class="trainer-poke-cell">';
+          if(num)teamHtml+='<img class="trainer-poke-spr" src="'+spriteUrl(num)+'" onerror="this.style.opacity=0.2">';
+          else teamHtml+='<div style="width:48px;height:48px"></div>';
+          teamHtml+='<div class="trainer-poke-name">'+p.name+'</div>';
+          teamHtml+='<div class="trainer-poke-lv">Lv'+p.level+'</div>';
+          if(p.item)teamHtml+='<div class="trainer-poke-item">'+p.item+'</div>';
+          teamHtml+='</div>';
+        });
+        html+='<div class="trainer-card" id="tcard-'+t.id+'" onclick="toggleTrainer('+t.id+')">';
+        html+='<div class="trainer-header">';
+        if(sprUrl)html+='<img class="trainer-spr" src="'+sprUrl+'" onerror="this.style.display=\'none\'">';
+        html+='<div><div class="trainer-class">'+t.class+'</div><div class="trainer-id">#'+t.id+'</div></div>';
+        html+='</div>';
+        html+='<div class="trainer-team" id="tteam-'+t.id+'">';
+        html+='<div class="trainer-pokemon-grid">'+teamHtml+'</div>';
+        html+='</div></div>';
+      });
+      g.innerHTML=html;
+    });
+}
+
+function toggleTrainer(id){
+  var team=document.getElementById('tteam-'+id);
+  var card=document.getElementById('tcard-'+id);
+  if(!team)return;
+  var open=team.style.display==='block';
+  document.querySelectorAll('.trainer-team').forEach(function(t){t.style.display='none';});
+  document.querySelectorAll('.trainer-card').forEach(function(c){c.classList.remove('active');});
+  if(!open){team.style.display='block';card.classList.add('active');}
+}
+
+function loadWild(){
+  var inp=document.getElementById('s-wild');var q=inp?inp.value:'';
+  return fetch('/api/wild?q='+encodeURIComponent(q))
+    .then(function(r){return r.json();})
+    .then(function(data){
+      document.getElementById('c-wild').textContent=' ('+data.length+')';
+      var g=document.getElementById('g-wild');
+      if(!data.length){g.innerHTML='<div class="loading">Aucun resultat</div>';return;}
+      var html='';
+      data.forEach(function(ws){
+        html+='<div class="card"><div class="ctitle">'+ws.location+'</div>';
+        Object.entries(ws.encounter_types).forEach(function(e){
+          var type=e[0];var pokes=e[1];
+          html+='<div class="enc-type"><div class="enc-label">'+type+'</div><div class="tags">';
+          pokes.forEach(function(p){
+            html+='<span class="tag poke">'+p.name+' <span style="color:var(--muted)">Lv'+p.level+'</span></span>';
+          });
+          html+='</div></div>';
+        });
+        html+='</div>';
+      });
+      g.innerHTML=html;
+    });
+}
+
+function loadTms(){
+  var inp=document.getElementById('s-tms');var q=inp?inp.value:'';
+  return fetch('/api/tms?q='+encodeURIComponent(q))
+    .then(function(r){return r.json();})
+    .then(function(data){
+      data.forEach(function(t){tmMoveMap[t.tm]=t.move;});
+      document.getElementById('c-tms').textContent=' ('+data.length+')';
+      var c=document.getElementById('g-tms');
+      if(!data.length){c.innerHTML='<div class="loading">Aucun resultat</div>';return;}
+      var html='<table class="dtable"><thead><tr><th>CT/CS</th><th>CAPACITE</th></tr></thead><tbody>';
+      data.forEach(function(t){
+        html+='<tr><td style="color:var(--muted)">'+t.tm+'</td><td>'+ppLink(t.move,t.move)+'</td></tr>';
+      });
+      html+='</tbody></table>';
+      c.innerHTML=html;
+    });
+}
+
+function loadShops(){
+  var inp=document.getElementById('s-shops');var q=inp?inp.value:'';
+  return fetch('/api/shops?q='+encodeURIComponent(q))
+    .then(function(r){return r.json();})
+    .then(function(data){
+      document.getElementById('c-shops').textContent=' ('+data.length+')';
+      var g=document.getElementById('g-shops');
+      if(!data.length){g.innerHTML='<div class="loading">Aucun resultat</div>';return;}
+      var html='';
+      data.forEach(function(s){
+        html+='<div class="card"><div class="ctitle">'+s.name+'</div><div class="tags">';
+        s.items.forEach(function(i){html+='<span class="tag item2">'+i+'</span>';});
+        html+='</div></div>';
+      });
+      g.innerHTML=html;
+    });
+}
+
+{% if has_data %}loadPokemon().then(function(){loadTeamState();});fetch('/api/trainers').then(function(r){return r.json();}).then(function(data){currentTrainersData=data;});{% endif %}
+
+function switchAdventure(){
+  var select=document.getElementById('adventure-select');
+  var id=parseInt(select.value);
+  fetch('/api/adventures/'+id+'/select',{method:'POST'})
+    .then(function(){location.reload();});
+}
+
+var teamState={team:[],pc:[],dead:[]};
+var currentTrainersData=[];
+
+function loadTeamState(){
+  return fetch('/api/team-state').then(function(r){return r.json();}).then(function(data){
+    teamState=data;
+    renderTeamDisplay();
+  });
+}
+
+function renderTeamDisplay(){
+  var html='';
+  teamState.team.forEach(function(p){
+    var num=nameToNum[p.name.toUpperCase()]||'';
+    console.log('Rendering team poke:',p.name,'num:',num);
+    html+='<div class="team-poke">';
+    if(num)html+='<img class="team-sprite" src="'+spriteUrl(num)+'" onerror="this.style.opacity=0.3">';
+    else html+='<div style="width:60px;height:60px;background:var(--brd)"></div>';
+    html+='<div class="team-poke-name">'+(p.nickname||p.name)+'</div>';
+    html+='<div style="color:var(--muted);font-size:8px">'+p.name+'</div>';
+    html+='<div class="team-poke-level">Lv'+p.level+'</div>';
+    html+='</div>';
+  });
+  document.getElementById('team-display').innerHTML=html||'<div style="color:var(--muted)">Pas de Pokémon en équipe</div>';
+  
+  var pcHtml='';
+  teamState.pc.forEach(function(p){
+    var num=nameToNum[p.name]||'';
+    var label=(p.nickname||p.name)+' Lv'+p.level;
+    pcHtml+='<div class="team-poke pc-item" title="'+label+'">';
+    if(num)pcHtml+='<img style="width:40px;height:40px" src="'+spriteUrl(num)+'" onerror="this.style.opacity=0.3">';
+    pcHtml+='<div style="font-size:8px">'+p.name+'</div>';
+    pcHtml+='</div>';
+  });
+  document.getElementById('pc-display').innerHTML=pcHtml||'<span style="color:var(--muted)">Vide</span>';
+  
+  var deadHtml='';
+  teamState.dead.forEach(function(p){
+    var label=(p.nickname||p.name)+' Lv'+p.level;
+    deadHtml+='<div class="team-poke pc-item dead" title="'+label+'">';
+    deadHtml+='<div>☠</div>';
+    deadHtml+='<div style="font-size:8px">'+p.name+'</div>';
+    deadHtml+='</div>';
+  });
+  document.getElementById('dead-display').innerHTML=deadHtml||'<span style="color:var(--muted)">Aucune mort</span>';
+}
+
+function updateFormType(){
+  var type=document.getElementById('j-type').value;
+  var container=document.getElementById('form-container');
+  
+  if(!type){container.innerHTML='';return;}
+  
+  var html='';
+  if(type==='pokemon_capture'){
+    html+='<div style="font-size:10px;color:var(--muted);margin-bottom:8px">Pokémon capturé:</div>';
+    html+='<select id="j-pokemon" class="select-field" style="width:100%"><option value="">-- Sélectionne --</option>';
+    for(var i=0;i<allPokemon.length;i++){
+      html+='<option value="'+allPokemon[i].name+'">'+allPokemon[i].name+'</option>';
+    }
+    html+='</select>';
+    html+='<input type="text" id="j-nickname" placeholder="Surnom (optionnel)" class="input-field" style="width:100%">';
+    html+='<input type="number" id="j-level" placeholder="Niveau" class="input-field" style="width:100%">';
+    html+='<select id="j-zone" class="select-field" style="width:100%"><option value="">-- Zone de capture --</option>';
+    var zones={};
+    for(var i=0;i<allPokemon.length;i++){
+      if(allPokemon[i].wild){
+        allPokemon[i].wild.forEach(function(w){zones[w.location]=1;});
+      }
+    }
+    Object.keys(zones).sort().forEach(function(z){html+='<option value="'+z+'">'+z+'</option>';});
+    html+='</select>';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">';
+    html+='<button class="team-switch" onclick="setCaptureDest(\'team\')">À l\'équipe</button>';
+    html+='<button class="team-switch" onclick="setCaptureDest(\'pc\')">Au PC</button>';
+    html+='</div>';
+    html+='<div id="team-swap-container"></div>';
+    html+='<textarea id="j-desc" placeholder="Notes (optionnel)" class="input-field" style="width:100%;min-height:60px;resize:vertical"></textarea>';
+    html+='<button class="btn" onclick="addJournalEntry()" style="width:100%;margin-top:8px">AJOUTER CAPTURE</button>';
+  }
+  else if(type==='evolution'){
+    html+='<div style="font-size:10px;color:var(--muted);margin-bottom:8px">Pokémon qui évolue:</div>';
+    html+='<select id="j-pokemon" class="select-field" style="width:100%" onchange="updateEvolutionOptions()"><option value="">-- Sélectionne --</option>';
+    teamState.team.concat(teamState.pc).forEach(function(p){
+      html+='<option value="'+p.name+'">'+p.name+' (Lv'+p.level+')</option>';
+    });
+    html+='</select>';
+    html+='<div style="font-size:10px;color:var(--muted);margin-bottom:8px;margin-top:10px">Évolue en:</div>';
+    html+='<select id="j-evolved-to" class="select-field" style="width:100%"><option value="">-- Sélectionne --</option>';
+    for(var i=0;i<allPokemon.length;i++){
+      html+='<option value="'+allPokemon[i].name+'">'+allPokemon[i].name+'</option>';
+    }
+    html+='</select>';
+    html+='<input type="number" id="j-level" placeholder="Niveau après évolution" class="input-field" style="width:100%;margin-top:8px">';
+    html+='<textarea id="j-desc" placeholder="Notes (optionnel)" class="input-field" style="width:100%;min-height:60px;resize:vertical"></textarea>';
+    html+='<button class="btn" onclick="addJournalEntry()" style="width:100%;margin-top:8px">AJOUTER ÉVOLUTION</button>';
+  }
+  else if(type==='arena_battle'){
+    html+='<div id="trainer-select-container"></div>';
+    html+='<div id="team-dead-container"></div>';
+    html+='<textarea id="j-desc" placeholder="Notes sur le combat (optionnel)" class="input-field" style="width:100%;min-height:60px;resize:vertical"></textarea>';
+    html+='<button class="btn" onclick="addJournalEntry()" style="width:100%;margin-top:8px">AJOUTER COMBAT ARÈNE</button>';
+    loadTrainersForSelector();
+  }
+  else if(type==='pokemon_death'){
+    html+='<div style="font-size:10px;color:var(--muted);margin-bottom:8px">Pokémon décédé:</div>';
+    html+='<select id="j-pokemon" class="select-field" style="width:100%"><option value="">-- Sélectionne --</option>';
+    teamState.team.concat(teamState.pc).forEach(function(p){
+      html+='<option value="'+p.name+'">'+p.name+' (Lv'+p.level+')</option>';
+    });
+    html+='</select>';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px">';
+    html+='<button class="team-switch" onclick="setDeathLocation(\'trainer\')">Contre un dresseur</button>';
+    html+='<button class="team-switch" onclick="setDeathLocation(\'wild\')">Zone Wild</button>';
+    html+='</div>';
+    html+='<div id="death-location-container"></div>';
+    html+='<textarea id="j-desc" placeholder="Notes (optionnel)" class="input-field" style="width:100%;min-height:60px;resize:vertical"></textarea>';
+    html+='<button class="btn" onclick="addJournalEntry()" style="width:100%;margin-top:8px">AJOUTER DÉCÈS</button>';
+  }
+  else if(type==='team_change'){
+    html+='<div style="font-size:10px;color:var(--muted);margin-bottom:8px">Pokémon du PC à ajouter:</div>';
+    html+='<select id="j-pokemon" class="select-field" style="width:100%"><option value="">-- Sélectionne --</option>';
+    teamState.pc.forEach(function(p){html+='<option value="'+p.name+'">'+p.name+' (Lv'+p.level+')</option>';});
+    html+='</select>';
+    
+    if(teamState.team.length<6){
+      html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px">';
+      html+='<button class="team-switch" onclick="setTeamChangeMode(\'add\')">Ajouter à l\'équipe</button>';
+      html+='<button class="team-switch" onclick="setTeamChangeMode(\'replace\')">Remplacer un Pokémon</button>';
+      html+='</div>';
+      html+='<div id="team-change-replace-container"></div>';
+    }else{
+      html+='<div style="font-size:10px;color:var(--muted);margin-bottom:8px;margin-top:10px">Pokémon de l\'équipe à remplacer (équipe pleine):</div>';
+      html+='<select id="j-swap" class="select-field" style="width:100%"><option value="">-- Sélectionne --</option>';
+      teamState.team.forEach(function(p){html+='<option value="'+p.name+'">'+p.name+' (Lv'+p.level+')</option>';});
+      html+='</select>';
+    }
+    
+    html+='<textarea id="j-desc" placeholder="Notes (optionnel)" class="input-field" style="width:100%;min-height:60px;resize:vertical"></textarea>';
+    html+='<button class="btn" onclick="addJournalEntry()" style="width:100%;margin-top:8px">AJOUTER CHANGEMENT</button>';
+  }
+  else if(type==='other'){
+    html+='<textarea id="j-desc" placeholder="Décrire l\'événement..." class="input-field" style="width:100%;min-height:120px;resize:vertical"></textarea>';
+    html+='<button class="btn" onclick="addJournalEntry()" style="width:100%;margin-top:8px">AJOUTER ÉVÉNEMENT</button>';
+  }
+  
+  container.innerHTML=html;
+}
+
+var captureDestination='team';
+function setCaptureDest(dest){
+  captureDestination=dest;
+  var btns=document.querySelectorAll('#form-container .team-switch');
+  btns.forEach(function(b){b.classList.remove('selected');});
+  event.target.classList.add('selected');
+  
+  if(dest==='team' && teamState.team.length>=6){
+    var html='<div style="font-size:10px;color:var(--acc2);margin-top:8px">L\'équipe est pleine, choisir qui envoyer au PC:</div>';
+    html+='<select id="j-swap-select" class="select-field" style="width:100%;margin-top:6px">';
+    teamState.team.forEach(function(p){html+='<option value="'+p.name+'">'+p.name+' (Lv'+p.level+')</option>';});
+    html+='</select>';
+    document.getElementById('team-swap-container').innerHTML=html;
+  }else{
+    document.getElementById('team-swap-container').innerHTML='';
+  }
+}
+
+function loadTrainersForSelector(){
+  fetch('/api/trainers').then(function(r){return r.json();}).then(function(data){
+    currentTrainersData=data;
+    var html='<div style="font-size:10px;color:var(--muted);margin-bottom:8px">Sélectionner l\'adversaire:</div>';
+    html+='<div class="trainer-selector">';
+    data.forEach(function(t){
+      var isImportant=/^(CHAMPION|CONSEIL|BOSS)/i.test(t.class);
+      if(isImportant){
+        html+='<div class="trainer-sel-card" onclick="selectTrainerForBattle('+t.id+', this)">';
+        html+='<div class="trainer-sel-name" style="font-size:8px">'+t.class+'</div>';
+        html+='<div class="trainer-sel-class">#'+t.id+'</div>';
+        html+='</div>';
+      }
+    });
+    html+='</div>';
+    document.getElementById('trainer-select-container').innerHTML=html;
+  });
+}
+
+var selectedTrainerForBattle=null;
+function selectTrainerForBattle(trainerId,elem){
+  selectedTrainerForBattle=trainerId;
+  var cards=document.querySelectorAll('.trainer-sel-card');
+  cards.forEach(function(c){c.classList.remove('selected');});
+  elem.classList.add('selected');
+  
+  var html='<div style="font-size:10px;color:var(--muted);margin-top:10px;margin-bottom:8px">Pokémon morts dans ce combat:</div>';
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">';
+  teamState.team.forEach(function(p){
+    html+='<div class="team-switch" onclick="toggleDeathInBattle(\''+p.name.replace(/'/g,"\\'")+'\', this)">'+p.name+'</div>';
+  });
+  html+='</div>';
+  document.getElementById('team-dead-container').innerHTML=html;
+}
+
+var deathsInBattle=[];
+function toggleDeathInBattle(pokeName,elem){
+  if(deathsInBattle.indexOf(pokeName)>-1){
+    deathsInBattle.splice(deathsInBattle.indexOf(pokeName),1);
+    elem.classList.remove('selected');
+  }else{
+    deathsInBattle.push(pokeName);
+    elem.classList.add('selected');
+  }
+}
+
+var teamChangeMode='add';
+function setTeamChangeMode(mode){
+  teamChangeMode=mode;
+  var btns=document.querySelectorAll('#form-container .team-switch');
+  btns.forEach(function(b){b.classList.remove('selected');});
+  event.target.classList.add('selected');
+  
+  var html='';
+  if(mode==='replace'){
+    html='<select id="j-swap" class="select-field" style="width:100%;margin-top:8px"><option value="">-- Pokémon à remplacer --</option>';
+    teamState.team.forEach(function(p){html+='<option value="'+p.name+'">'+p.name+' (Lv'+p.level+')</option>';});
+    html+='</select>';
+  }
+  document.getElementById('team-change-replace-container').innerHTML=html;
+}
+
+var deathLocationType='trainer';
+function setDeathLocation(type){
+  deathLocationType=type;
+  var btns=document.querySelectorAll('#form-container .team-switch');
+  btns.forEach(function(b){b.classList.remove('selected');});
+  event.target.classList.add('selected');
+  
+  var html='';
+  if(type==='trainer'){
+    html='<select id="j-death-trainer" class="select-field" style="width:100%;margin-top:8px"><option value="">-- Dresseur --</option>';
+    currentTrainersData.forEach(function(t){
+      html+='<option value="'+t.id+'|'+t.class+'">'+t.class+' #'+t.id+'</option>';
+    });
+    html+='</select>';
+  }else{
+    html='<select id="j-death-zone" class="select-field" style="width:100%;margin-top:8px"><option value="">-- Zone --</option>';
+    var zones={};
+    for(var i=0;i<allPokemon.length;i++){
+      if(allPokemon[i].wild){
+        allPokemon[i].wild.forEach(function(w){zones[w.location]=1;});
+      }
+    }
+    Object.keys(zones).sort().forEach(function(z){html+='<option value="'+z+'">'+z+'</option>';});
+    html+='</select>';
+  }
+  document.getElementById('death-location-container').innerHTML=html;
+}
+
+function loadJourney(){
+  return fetch('/api/journey').then(function(r){return r.json();}).then(function(data){
+    document.getElementById('c-journey').textContent=' ('+data.length+')';
+    var g=document.getElementById('g-journey');
+    if(!data.length){g.innerHTML='<div class="loading">Aucun événement - ajoutes des entrées ci-dessus!</div>';return;}
+    
+    var html='';
+    
+    for(var i=0;i<data.length;i++){
+      var e=data[i];
+      
+      if(e.type==='arena_battle'){
+        // Arena is a full-width milestone
+        html+='<div class="arena-milestone">';
+        html+='<div class="arena-milestone-title">⚔ '+e.trainer_name+'</div>';
+        
+        // Team at time of battle
+        var teamAtBattle=[];
+        for(var j=0;j<i;j++){
+          if(data[j].type==='pokemon_capture' && data[j].destination==='team' && !data[j].swapped_pokemon){
+            teamAtBattle.push(data[j].pokemon);
+          }else if(data[j].type==='pokemon_capture' && data[j].swapped_pokemon){
+            var idx=teamAtBattle.indexOf(data[j].swapped_pokemon);
+            if(idx>=0)teamAtBattle.splice(idx,1);
+            teamAtBattle.push(data[j].pokemon);
+          }else if(data[j].type==='evolution'){
+            var idx=teamAtBattle.indexOf(data[j].pokemon);
+            if(idx>=0)teamAtBattle[idx]=data[j].evolved_to;
+          }else if(data[j].type==='pokemon_death'){
+            var idx=teamAtBattle.indexOf(data[j].pokemon);
+            if(idx>=0)teamAtBattle.splice(idx,1);
+          }else if(data[j].type==='team_change'){
+            // Add pokemon from PC to team
+            teamAtBattle.push(data[j].pokemon);
+            // Remove swapped pokemon if any
+            if(data[j].swapped_pokemon){
+              var idx=teamAtBattle.indexOf(data[j].swapped_pokemon);
+              if(idx>=0)teamAtBattle.splice(idx,1);
+            }
+          }
+        }
+        
+        html+='<div>';
+        html+='<div class="arena-team-label">💪 Mon équipe:</div>';
+        html+='<div class="arena-team">';
+        teamAtBattle.forEach(function(pname){
+          var pnum=nameToNumLC[pname.toLowerCase()]||'?';
+          var sprite=spriteUrl(pnum);
+          html+='<div class="arena-team-poke">';
+          html+='<img src="'+sprite+'" class="arena-team-sprite" onerror="this.src=\'/data/pokemon/0.png\'">';
+          html+='<div class="arena-team-name">'+pname+'</div>';
+          html+='</div>';
+        });
+        html+='</div>';
+        html+='</div>';
+        
+        html+='<div>';
+        html+='<div class="arena-team-label">🏆 Équipe opponent:</div>';
+        html+='<div class="arena-team">';
+        if(e.trainer_team){
+          try{
+            var oppTeam=typeof e.trainer_team==='string'?JSON.parse(e.trainer_team):e.trainer_team;
+            oppTeam.forEach(function(p){
+              var pnum=nameToNumLC[p.name.toLowerCase()]||'?';
+              var sprite=spriteUrl(pnum);
+              html+='<div class="arena-team-poke">';
+              html+='<img src="'+sprite+'" class="arena-team-sprite" onerror="this.src=\'/data/pokemon/0.png\'">';
+              html+='<div class="arena-team-name">'+p.name+'</div>';
+              html+='</div>';
+            });
+          }catch(err){}
+        }
+        html+='</div>';
+        html+='</div>';
+        
+        if(e.deaths_in_battle && e.deaths_in_battle.length){
+          html+='<div class="arena-deaths" style="grid-column:1/-1;text-align:center">💀 Pertes: '+e.deaths_in_battle.join(', ')+'</div>';
+        }
+        
+        html+='<button style="grid-column:1/-1;background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;padding:4px" onclick="deleteJournalEntry('+e.id+')" title="Supprimer">Supprimer</button>';
+        html+='</div>';
+      }else{
+        // Start a grid row for small cards
+        if(i===0 || data[i-1].type==='arena_battle'){
+          if(i>0)html+='</div>'; // Close previous grid if exists
+          html+='<div class="journey-grid">';
+        }
+        
+        if(e.type==='pokemon_capture'){
+          var pnum=nameToNumLC[e.pokemon.toLowerCase()]||'?';
+          var sprite=spriteUrl(pnum);
+          html+='<div class="journey-card capture">';
+          html+='<div class="journey-label">✨</div>';
+          html+='<img src="'+sprite+'" class="journey-sprite" onerror="this.src=\'\'">';
+          html+='<div class="journey-text">'+(e.nickname||e.pokemon)+'</div>';
+          html+='<div class="journey-sub" style="color:var(--muted);font-size:7px">'+e.capture_zone+'</div>';
+          html+='<button class="journey-delete" onclick="deleteJournalEntry('+e.id+')">×</button>';
+          html+='</div>';
+        }else if(e.type==='evolution'){
+          var pnum1=nameToNumLC[e.pokemon.toLowerCase()]||'?';
+          var pnum2=nameToNumLC[e.evolved_to.toLowerCase()]||'?';
+          var sprite1=spriteUrl(pnum1);
+          var sprite2=spriteUrl(pnum2);
+          html+='<div class="journey-card evolution">';
+          html+='<div class="journey-label">⚡</div>';
+          html+='<div style="display:flex;align-items:center;justify-content:center;gap:6px;margin:4px">';
+          html+='<div style="text-align:center">';
+          html+='<img src="'+sprite1+'" style="width:35px;height:35px;image-rendering:pixelated" onerror="this.src=\"\"">';
+          html+='<div style="font-size:7px;color:var(--muted)">'+e.pokemon.substr(0,5)+'</div>';
+          html+='</div>';
+          html+='<div style="color:var(--muted);font-size:12px">→</div>';
+          html+='<div style="text-align:center">';
+          html+='<img src="'+sprite2+'" style="width:35px;height:35px;image-rendering:pixelated" onerror="this.src=\"\"">';
+          html+='<div style="font-size:7px;color:var(--acc)">'+e.evolved_to.substr(0,5)+'</div>';
+          html+='</div>';
+          html+='</div>';
+          html+='<button class="journey-delete" onclick="deleteJournalEntry('+e.id+')">×</button>';
+          html+='</div>';
+        }else if(e.type==='pokemon_death'){
+          var pnum=nameToNumLC[e.pokemon.toLowerCase()]||'?';
+          var sprite=spriteUrl(pnum);
+          html+='<div class="journey-card pokemon_death">';
+          html+='<div class="journey-label">💀</div>';
+          html+='<img src="'+sprite+'" class="journey-sprite" onerror="this.src=\'/data/pokemon/0.png\'">';
+          html+='<div class="journey-text">'+e.pokemon+'</div>';
+          html+='<button class="journey-delete" onclick="deleteJournalEntry('+e.id+')">×</button>';
+          html+='</div>';
+        }else if(e.type==='team_change'){
+          var pnum2=nameToNumLC[e.pokemon.toLowerCase()]||'?';
+          var sprite2=spriteUrl(pnum2);
+          html+='<div class="journey-card team_change">';
+          html+='<div class="journey-label">🔄</div>';
+          if(e.swapped_pokemon){
+            var pnum1=nameToNumLC[e.swapped_pokemon.toLowerCase()]||'?';
+            var sprite1=spriteUrl(pnum1);
+            html+='<div style="display:flex;align-items:center;justify-content:center;gap:6px;margin:4px">';
+            html+='<div style="text-align:center">';
+            html+='<img src="'+sprite1+'" style="width:35px;height:35px;image-rendering:pixelated" onerror="this.src=\"\"">';
+            html+='<div style="font-size:7px;color:var(--danger)">'+e.swapped_pokemon.substr(0,5)+'</div>';
+            html+='</div>';
+            html+='<div style="color:var(--muted);font-size:12px">⇄</div>';
+            html+='<div style="text-align:center">';
+            html+='<img src="'+sprite2+'" style="width:35px;height:35px;image-rendering:pixelated" onerror="this.src=\"\"">';
+            html+='<div style="font-size:7px;color:var(--acc)">'+e.pokemon.substr(0,5)+'</div>';
+            html+='</div>';
+            html+='</div>';
+          }else{
+            html+='<img src="'+sprite2+'" class="journey-sprite" onerror="this.src=\"\"">';
+            html+='<div class="journey-text">'+e.pokemon+'</div>';
+            html+='<div class="journey-sub" style="color:var(--acc2);font-size:8px">ajouté à l\'équipe</div>';
+          }
+          html+='<button class="journey-delete" onclick="deleteJournalEntry('+e.id+')">×</button>';
+          html+='</div>';
+        }
+      }
+    }
+    
+    // Close final grid if open
+    if(data.length>0 && data[data.length-1].type!=='arena_battle'){
+      html+='</div>';
+    }
+    
+    g.innerHTML=html;
+  });
+}
+function updateEvolutionOptions(){
+  // Optional: could filter evolution options based on selected pokemon
+  // For now, user can select from all pokemon
+}
+
+function addJournalEntry(){
+  var type=document.getElementById('j-type').value;
+  if(!type){alert('Sélectionne un type');return;}
+  
+  var payload={type:type};
+  
+  if(type==='pokemon_capture'){
+    var poke=document.getElementById('j-pokemon').value;
+    var level=document.getElementById('j-level').value;
+    var zone=document.getElementById('j-zone').value;
+    var dest=captureDestination;
+    var swapped=null;
+    var nickname=document.getElementById('j-nickname').value||null;
+    
+    if(!poke ||!level){alert('Nom et niveau requis');return;}
+    if(!zone){alert('Zone requise');return;}
+    if(dest==='team' && teamState.team.length>=6){
+      swapped=document.getElementById('j-swap-select').value;
+      if(!swapped){alert('Choisis qui envoyer au PC');return;}
+    }
+    
+    payload.pokemon=poke;
+    payload.nickname=nickname;
+    payload.level=parseInt(level);
+    payload.capture_zone=zone;
+    payload.destination=dest;
+    payload.team_position=(dest==='team')?(teamState.team.length):null;
+    payload.swapped_pokemon=swapped;
+    payload.description=document.getElementById('j-desc').value;
+  }
+  else if(type==='evolution'){
+    var poke=document.getElementById('j-pokemon').value;
+    var evolved=document.getElementById('j-evolved-to').value;
+    var level=document.getElementById('j-level').value;
+    if(!poke||!evolved||!level){alert('Tous les champs sont requis');return;}
+    
+    // Get current level from teamState if available
+    var currentPoke=teamState.team.concat(teamState.pc).find(function(p){return p.name===poke;});
+    var currentLevel=currentPoke?currentPoke.level:null;
+    
+    payload.pokemon=poke;
+    payload.evolved_to=evolved;
+    payload.level=parseInt(level);
+    payload.description=document.getElementById('j-desc').value;
+    var pos=teamState.team.findIndex(function(p){return p.name===poke;});
+    payload.team_position=pos>=0?pos+1:null;
+  }
+  else if(type==='arena_battle'){
+    if(!selectedTrainerForBattle){alert('Sélectionne un adversaire');return;}
+    var trainer=currentTrainersData.find(function(t){return t.id===selectedTrainerForBattle;});
+    payload.trainer_name=trainer.class;
+    payload.trainer_id=trainer.id;
+    payload.trainer_team=trainer.pokemon;
+    payload.deaths_in_battle=deathsInBattle.length>0?deathsInBattle:null;
+    payload.description=document.getElementById('j-desc').value;
+    selectedTrainerForBattle=null;
+    deathsInBattle=[];
+  }
+  else if(type==='pokemon_death'){
+    var poke=document.getElementById('j-pokemon').value;
+    if(!poke){alert('Sélectionne un pokémon');return;}
+    
+    // Get level from teamState instead of requiring manual input
+    var currentPoke=teamState.team.concat(teamState.pc).find(function(p){return p.name===poke;});
+    if(!currentPoke){alert('Pokémon non trouvé');return;}
+    var level=currentPoke.level;
+    
+    payload.pokemon=poke;
+    payload.level=level;
+    if(deathLocationType==='trainer'){
+      var val=document.getElementById('j-death-trainer').value;
+      if(!val){alert('Sélectionne un dresseur');return;}
+      var parts=val.split('|');
+      payload.trainer_id=parseInt(parts[0]);
+      payload.trainer_name=parts[1];
+    }else{
+      var zone=document.getElementById('j-death-zone').value;
+      if(!zone){alert('Sélectionne une zone');return;}
+      payload.location=zone;
+    }
+    payload.description=document.getElementById('j-desc').value;
+  }
+  else if(type==='team_change'){
+    var poke=document.getElementById('j-pokemon').value;
+    if(!poke){alert('Sélectionne un Pokémon');return;}
+    
+    // Get level from PC pokemon
+    var pcPoke=teamState.pc.find(function(p){return p.name===poke;});
+    if(!pcPoke){alert('Pokémon non trouvé');return;}
+    var level=pcPoke.level;
+    
+    var swap=null;
+    if(teamChangeMode==='replace' || teamState.team.length>=6){
+      swap=document.getElementById('j-swap').value;
+      if(!swap){alert('Choisis qui remplacer');return;}
+    }
+    
+    payload.pokemon=poke;
+    payload.level=level;
+    payload.swapped_pokemon=swap;
+    payload.description=document.getElementById('j-desc').value;
+  }
+  else if(type==='other'){
+    var desc=document.getElementById('j-desc').value;
+    if(!desc){alert('Décris l\'événement');return;}
+    payload.description=desc;
+  }
+  
+  fetch('/api/journal-entry',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.ok){
+        document.getElementById('j-type').value='';
+        document.getElementById('form-container').innerHTML='';
+        teamChangeMode='add'; // Reset team change mode
+        loadJourney();
+        loadTeamState();
+      }else{
+        alert('Erreur: '+d.message);
+      }
+    })
+    .catch(function(e){alert('Erreur network: '+e);});
+}
+
+function deleteJournalEntry(id){
+  if(!confirm('Supprimer cet événement?'))return;
+  fetch('/api/journal-entry/'+id,{method:'DELETE'})
+    .then(function(r){return r.json();})
+    .then(function(d){if(d.ok){loadJourney();loadTeamState();}});
+}
+</script>
+</body>
+</html>

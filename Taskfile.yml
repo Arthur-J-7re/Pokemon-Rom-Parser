@@ -1,0 +1,30 @@
+version: '3'
+
+tasks:
+  up:
+    desc: "Lancer le wiki (build + start)"
+    cmds:
+      - docker compose up --build -d
+      - echo "✓ PokeRando Wiki dispo sur http://localhost:8000"
+
+  down:
+    desc: "Arrêter le wiki"
+    cmds:
+      - docker compose down
+
+  logs:
+    desc: "Voir les logs du container"
+    cmds:
+      - docker compose logs -f
+
+  reset:
+    desc: "Supprimer la base de données (repart de zéro)"
+    cmds:
+      - rm -f ./data/pokerando.db
+      - echo "✓ Base supprimée"
+
+  dev:
+    desc: "Mode développement (hot reload, sans Docker)"
+    cmds:
+      - pip install -r requirements.txt -q
+      - uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
